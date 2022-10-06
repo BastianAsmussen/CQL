@@ -1,0 +1,15 @@
+Keywords:
+    - ALL: "*"
+    
+    - CREATE: "CREATE"
+    - READ: "SELECT"
+    - UPDATE: "UPDATE"
+    - DELETE: "DELETE"
+    - DATABASE: "DATABASE"
+    - TABLE: "TABLE"
+    - ALTER: "ALTER"
+    - DROP: "DROP"
+
+# Pseudo:
+# CREATE DATABASE database_name;
+# CREATE TABLE table_name(column_name data_type, ..);

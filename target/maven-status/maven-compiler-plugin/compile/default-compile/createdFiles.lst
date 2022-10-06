@@ -1,1 +1,4 @@
+tech\asmussen\sql\Table.class
 tech\asmussen\sql\CQL.class
+tech\asmussen\sql\Database.class
+tech\asmussen\sql\ASCII.class
