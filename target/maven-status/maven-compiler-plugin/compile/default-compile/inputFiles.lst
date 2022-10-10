@@ -1,4 +1,9 @@
-E:\Programming\Java\CQL\src\main\java\tech\asmussen\sql\Database.java
-E:\Programming\Java\CQL\src\main\java\tech\asmussen\sql\Table.java
-E:\Programming\Java\CQL\src\main\java\tech\asmussen\sql\CQL.java
-E:\Programming\Java\CQL\src\main\java\tech\asmussen\sql\ASCII.java
+E:\Programming\Java\CQL\src\main\java\tech\asmussen\cql\exceptions\ExistingDatabaseException.java
+E:\Programming\Java\CQL\src\main\java\tech\asmussen\util\ASCII.java
+E:\Programming\Java\CQL\src\main\java\tech\asmussen\util\Search.java
+E:\Programming\Java\CQL\src\main\java\Main.java
+E:\Programming\Java\CQL\src\main\java\tech\asmussen\cql\exceptions\DataFormatException.java
+E:\Programming\Java\CQL\src\main\java\tech\asmussen\cql\exceptions\ExistingTableException.java
+E:\Programming\Java\CQL\src\main\java\tech\asmussen\cql\Table.java
+E:\Programming\Java\CQL\src\main\java\tech\asmussen\cql\CQL.java
+E:\Programming\Java\CQL\src\main\java\tech\asmussen\cql\Database.java

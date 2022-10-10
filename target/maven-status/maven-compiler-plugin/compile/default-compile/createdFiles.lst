@@ -1,4 +1,9 @@
-tech\asmussen\sql\Table.class
-tech\asmussen\sql\CQL.class
-tech\asmussen\sql\Database.class
-tech\asmussen\sql\ASCII.class
+Main.class
+tech\asmussen\cql\CQL.class
+tech\asmussen\cql\Database.class
+tech\asmussen\cql\exceptions\ExistingDatabaseException.class
+tech\asmussen\util\ASCII.class
+tech\asmussen\cql\Table.class
+tech\asmussen\cql\exceptions\ExistingTableException.class
+tech\asmussen\cql\exceptions\DataFormatException.class
+tech\asmussen\util\Search.class
