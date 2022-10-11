@@ -1,6 +1,6 @@
 package tech.asmussen.cql;
 
-import tech.asmussen.util.ASCII;
+import tech.asmussen.cql.misc.ASCII;
 
 import java.io.BufferedReader;
 import java.io.IOException;

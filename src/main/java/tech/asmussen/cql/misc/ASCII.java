@@ -1,4 +1,4 @@
-package tech.asmussen.util;
+package tech.asmussen.cql.misc;
 
 import java.io.BufferedReader;
 import java.io.IOException;
