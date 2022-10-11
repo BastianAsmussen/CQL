@@ -1,0 +1,2 @@
+All table changes are saved in a new file named "New.cql" in the same directory as the original file. The original file is not modified.
+New.cql overrides the original file after the user writes "Commit" to the console.

@@ -5,18 +5,21 @@ import tech.asmussen.cql.exceptions.DataFormatException;
 import tech.asmussen.cql.exceptions.NoResultException;
 
 import java.util.Arrays;
-import java.util.LinkedList;
 
 public class Table {
-	private final String name;
 	
-	private final String[] columns;
+	private final Database database;
+	
+	private String name;
+	
+	private String[] columns;
 	private final Data[][] data;
 	
 	private boolean isDataSorted;
 	
-	public Table(String name, String[] columns) {
+	public Table(Database database, String name, String[] columns) {
 		
+		this.database = database;
 		this.name = name;
 		
 		this.columns = columns;
@@ -25,9 +28,27 @@ public class Table {
 		isDataSorted = false;
 	}
 	
+	public Database getDatabase() {
+		
+		return database;
+	}
+	
 	public String getName() {
 		
 		return name;
+	}
+	
+	public void setName(String name) {
+		
+		for (Table table : database.getTables()) {
+			
+			if (table.getName().equals(name)) {
+				
+				throw new IllegalArgumentException("A table with the name '" + name + "' already exists!");
+			}
+		}
+		
+		this.name = name;
 	}
 	
 	public String[] getColumns() {
@@ -35,16 +56,16 @@ public class Table {
 		return columns;
 	}
 	
+	public void setColumns(String[] columns) {
+		
+		// TODO: Resize the data array based on the new columns.
+		
+		this.columns = columns;
+	}
+	
 	public Object[] getValues(int index) {
 		
-		LinkedList<Object> values = new LinkedList<>();
-		
-		for (int i = 0; i < data[index].length; i++) {
-			
-			values.add(data[index][i].getValue());
-		}
-		
-		return values.toArray();
+		return data[index];
 	}
 	
 	public Object getValue(int index, int column) {

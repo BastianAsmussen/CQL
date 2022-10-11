@@ -3,9 +3,11 @@ package tech.asmussen.cql;
 import tech.asmussen.cql.misc.ASCII;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class CQL {
@@ -13,17 +15,22 @@ public class CQL {
 	public static final String AUTHOR = "Bastian Asmussen";
 	public static final String VERSION = "1.0.0";
 	public static final String LICENSE = "MIT";
+	public static final File ROOT = new Install().getRoot();
 	
-	public static final Database[] DATABASES = new Database[0];
+	private static Server[] servers;
 	
 	private static boolean isExiting = false;
-	
 	
 	public static void main(String[] args) {
 		
 		clearScreen();
 		
-		checkVersion(false);
+		Thread backgroundThread = new Thread(() -> checkVersion(false)); // Check for updates in the background.
+		
+		backgroundThread.setDaemon(true);
+		backgroundThread.start();
+		
+		initialize();
 		
 		Scanner scanner = new Scanner(System.in);
 		
@@ -40,7 +47,46 @@ public class CQL {
 		System.out.println("Exiting...");
 	}
 	
-	public static void handleCommand(String input) {
+	public static Server[] getServers() {
+		
+		return servers;
+	}
+	
+	private static void initialize() {
+		
+		final long startTime = System.currentTimeMillis();
+		
+		System.out.println("Initializing CQL...");
+		
+		File[] serverFiles = new File(ROOT, "Servers").listFiles();
+		
+		if (serverFiles != null) {
+			
+			for (File server : serverFiles) {
+				
+				if (server.isDirectory()) {
+					
+					serverFiles = Arrays.copyOf(serverFiles, serverFiles.length + 1);
+					serverFiles[serverFiles.length - 1] = new File(server.getName());
+				}
+			}
+			
+			servers = new Server[serverFiles.length];
+			
+			for (int i = 0; i < serverFiles.length; i++) {
+				
+				servers[i] = new Server(serverFiles[i].getName());
+			}
+			
+		} else {
+			
+			servers = new Server[0];
+		}
+		
+		System.out.println("Initialized in " + (System.currentTimeMillis() - startTime) + " ms!");
+	}
+	
+	private static void handleCommand(String input) {
 		
 		if (input.isEmpty()) return;
 		
@@ -48,7 +94,7 @@ public class CQL {
 			
 			case "help" -> printHelp();
 			case "docs" -> printDocs();
-			case "check" -> checkVersion(true);
+			case "update" -> checkVersion(true);
 			case "clear" -> clearScreen();
 			case "exit" -> isExiting = true;
 			case "ascii" -> ASCII.printArt();
@@ -56,7 +102,47 @@ public class CQL {
 		}
 	}
 	
-	public static void checkVersion(boolean returnIfNone) {
+	private static void printHelp() {
+		
+		final Server[] servers = getServers();
+		
+		final int serverCount = servers.length;
+		final int databaseCount = Arrays.stream(servers)
+										.mapToInt(server -> server.getDatabases().length)
+										.sum();
+		final int tableCount = Arrays.stream(servers)
+									 .mapToInt(server -> Arrays.stream(server.getDatabases())
+									 .mapToInt(database -> database.getTables().length).sum())
+									 .sum();
+		
+		System.out.println("┌─ CQL - Custom Query Language");
+		System.out.println("├─── Author:  " + AUTHOR);
+		System.out.println("├─── License: " + LICENSE);
+		System.out.println("├─── Version: " + VERSION);
+		System.out.println("│");
+		System.out.println("├─ Commands");
+		System.out.println("├─── 'help'   Print this message.");
+		System.out.println("├─── 'docs'   Get a link to the documentation.");
+		System.out.println("├─── 'update' Check for updates.");
+		System.out.println("├─── 'clear'  Clear the screen.");
+		System.out.println("├─── 'exit'   Exit the program.");
+		System.out.println("│");
+		System.out.println("├─ Information");
+		System.out.println("├─── Install Path:    " + ROOT.getAbsolutePath());
+		System.out.println("├─── Total Servers:   " + serverCount);
+		System.out.println("├─── Total Databases: " + databaseCount);
+		System.out.println("└─── Total Tables:    " + tableCount);
+	}
+	
+	private static void printDocs() {
+		
+		final String link = "https://github.com/BastianAsmussen/CQL/src/main/resources/docs/index.html";
+		
+		System.out.println("┌─ The CQL documentation can be found here:");
+		System.out.println("└─── " + link);
+	}
+	
+	private static void checkVersion(boolean isManualCheck) {
 		
 		String newVersion = VERSION;
 		
@@ -74,7 +160,10 @@ public class CQL {
 			
 		} catch (IOException e) {
 			
-			System.out.println("Failed to check for updates!");
+			if (isManualCheck) {
+				
+				System.out.println("Failed to check for updates!");
+			}
 		}
 		
 		if (!newVersion.equals(VERSION)) {
@@ -84,12 +173,14 @@ public class CQL {
 			
 		} else {
 			
-			if (returnIfNone)
+			if (isManualCheck) {
+				
 				System.out.println("No updates were found!");
+			}
 		}
 	}
 	
-	public static void clearScreen() {
+	private static void clearScreen() {
 		
 		final String os = System.getProperty("os.name");
 		
@@ -114,27 +205,5 @@ public class CQL {
 			
 			System.out.println("Failed to clear screen! (" + e.getMessage() + ")");
 		}
-	}
-	
-	public static void printHelp() {
-		
-		System.out.println("┌─ CQL - Custom Query Language");
-		System.out.println("├─── Author:  " + AUTHOR);
-		System.out.println("├─── Version: " + VERSION);
-		System.out.println("├─── License: " + LICENSE);
-		System.out.println("│");
-		System.out.println("├─ Commands");
-		System.out.println("├─── 'help'  Print this message.");
-		System.out.println("├─── 'docs'  Get a link to the documentation.");
-		System.out.println("├─── 'check' Check for updates.");
-		System.out.println("├─── 'clear' Clear the screen.");
-		System.out.println("└─── 'exit'  Exit the program.");
-	}
-	
-	public static void printDocs() {
-		
-		final String link = "https://github.com/BastianAsmussen/CQL/src/main/resources/docs/index.html";
-		
-		System.out.println("The CQL documentation can be found at '" + link + "'!");
 	}
 }

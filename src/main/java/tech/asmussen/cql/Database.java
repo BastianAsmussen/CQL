@@ -2,17 +2,24 @@ package tech.asmussen.cql;
 
 import tech.asmussen.cql.exceptions.ExistingTableException;
 
-import java.util.ArrayList;
-
 public class Database {
 	
+	private final Server server;
 	private final String name;
 	
-	private ArrayList<Table> tables;
+	private Table[] tables;
 	
-	public Database(String name) {
+	public Database(Server server, String name) {
 		
+		this.server = server;
 		this.name = name;
+		
+		tables = new Table[0];
+	}
+	
+	public Server getServer() {
+		
+		return server;
 	}
 	
 	public String getName() {
@@ -22,16 +29,25 @@ public class Database {
 	
 	public Table[] getTables() {
 		
-		return tables.toArray(new Table[0]);
+		return tables;
 	}
 	
 	public void addTable(Table table) throws ExistingTableException {
 		
-		if (tables.contains(table)) {
+		for (Table value : tables) {
 			
-			throw new ExistingTableException("The table '" + table + "' already exists in the database '" + getName() + "'!");
+			if (value.getName().equals(table.getName())) {
+				
+				throw new ExistingTableException("The table '" + table.getName() + "' already exists!");
+			}
 		}
 		
-		tables.add(table);
+		Table[] newTables = new Table[tables.length + 1];
+		
+		System.arraycopy(tables, 0, newTables, 0, tables.length);
+		
+		newTables[tables.length] = table;
+		
+		tables = newTables;
 	}
 }
