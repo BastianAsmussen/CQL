@@ -1,5 +1,6 @@
 package tech.asmussen.cql;
 
+import tech.asmussen.cql.exceptions.NoSuchServerException;
 import tech.asmussen.cql.misc.ASCII;
 import tech.asmussen.cql.structure.Server;
 
@@ -99,8 +100,40 @@ public class CQL {
 			case "clear" -> clearScreen();
 			case "exit" -> isExiting = true;
 			case "ascii" -> ASCII.printArt();
+			case "confirm" -> {
+				
+				String serverName = new Server("Test").getName();
+				
+				try {
+					
+					writeChanges(serverName);
+					
+				} catch (NoSuchServerException e) {
+					
+					System.out.println("A server with the name '" + serverName + "' does not exist!");
+				}
+			}
 			default -> System.out.println("Unknown command, type 'help' for help.");
 		}
+	}
+	
+	private static void writeChanges(String serverName) throws NoSuchServerException {
+		
+		final long startTime = System.currentTimeMillis();
+		
+		for (Server server : servers) {
+			
+			if (server.getName().equals(serverName)) {
+				
+				// server.writeChanges();
+				
+				System.out.println("Wrote changes to " + server.getName() + " in " + (System.currentTimeMillis() - startTime) + " ms!");
+				
+				return;
+			}
+		}
+		
+		throw new NoSuchServerException("A server with the name '" + serverName + "' doesn't exist!");
 	}
 	
 	private static void printHelp() {
@@ -122,11 +155,13 @@ public class CQL {
 		System.out.println("├─── Version: " + VERSION);
 		System.out.println("│");
 		System.out.println("├─ Commands");
-		System.out.println("├─── 'help'   Print this message.");
-		System.out.println("├─── 'docs'   Get a link to the documentation.");
-		System.out.println("├─── 'update' Check for updates.");
-		System.out.println("├─── 'clear'  Clear the screen.");
-		System.out.println("├─── 'exit'   Exit the program.");
+		System.out.println("├─── 'help'     Print this message.");
+		System.out.println("├─── 'docs'     Get a link to the documentation.");
+		System.out.println("├─── 'update'   Check for updates.");
+		System.out.println("├─── 'clear'    Clear the screen.");
+		System.out.println("├─── 'exit'     Exit the program.");
+		System.out.println("├─── 'confirm'  Confirm the server, database and table changes.");
+		System.out.println("├─── 'rollback' Cancel the server, database and table changes.");
 		System.out.println("│");
 		System.out.println("├─ Information");
 		System.out.println("├─── Install Path:    " + ROOT.getAbsolutePath());

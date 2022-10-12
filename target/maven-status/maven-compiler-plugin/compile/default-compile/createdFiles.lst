@@ -12,4 +12,5 @@ tech\asmussen\cql\exceptions\ExistingDatabaseException.class
 tech\asmussen\cql\structure\Database.class
 tech\asmussen\cql\exceptions\ExistingTableException.class
 tech\asmussen\cql\exceptions\DataFormatException.class
+tech\asmussen\cql\exceptions\NoSuchServerException.class
 tech\asmussen\cql\structure\Data.class
