@@ -6,8 +6,10 @@ tech\asmussen\cql\algorithms\BinarySearch.class
 tech\asmussen\cql\exceptions\CQLInstallException.class
 tech\asmussen\cql\Data.class
 tech\asmussen\cql\exceptions\NoResultException.class
+tech\asmussen\cql\misc\ANSI$Color.class
 tech\asmussen\cql\CQL.class
 tech\asmussen\cql\exceptions\ExistingDatabaseException.class
 tech\asmussen\cql\Table.class
 tech\asmussen\cql\exceptions\ExistingTableException.class
 tech\asmussen\cql\exceptions\DataFormatException.class
+tech\asmussen\cql\misc\ANSI.class
