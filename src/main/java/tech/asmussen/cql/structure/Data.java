@@ -1,4 +1,4 @@
-package tech.asmussen.cql;
+package tech.asmussen.cql.structure;
 
 public class Data {
 	

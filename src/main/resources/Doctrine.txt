@@ -1,0 +1,1 @@
+CQL has many servers, a server has many databases, a database has many tables, a table has much data.

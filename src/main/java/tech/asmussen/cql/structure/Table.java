@@ -1,4 +1,4 @@
-package tech.asmussen.cql;
+package tech.asmussen.cql.structure;
 
 import tech.asmussen.cql.algorithms.BinarySearch;
 import tech.asmussen.cql.exceptions.DataFormatException;
@@ -13,7 +13,7 @@ public class Table {
 	private String name;
 	
 	private String[] columns;
-	private final Data[][] data;
+	private Data[][] data;
 	
 	private boolean isDataSorted;
 	
@@ -58,7 +58,23 @@ public class Table {
 	
 	public void setColumns(String[] columns) {
 		
-		// TODO: Resize the data array based on the new columns.
+		Data[][] newData = new Data[columns.length][];
+		
+		// Copy the data from the old array to the new array.
+		for (int i = 0; i < columns.length; i++) {
+			
+			if (i < this.columns.length) { // If "i" is less than the length of the old array.
+				
+				newData[i] = this.data[i];
+				
+			} else { // If "i" is greater than the length of the old array (new column).
+				
+				newData[i] = new Data[0];
+			}
+		}
+		
+		// Set the new data array.
+		this.data = newData;
 		
 		this.columns = columns;
 	}
@@ -87,6 +103,11 @@ public class Table {
 		
 		// Assume that the data is now unsorted.
 		isDataSorted = false;
+	}
+	
+	public void drop() {
+		
+		database.removeTable(this);
 	}
 	
 	public Object searchFor(Object value) throws NoResultException {

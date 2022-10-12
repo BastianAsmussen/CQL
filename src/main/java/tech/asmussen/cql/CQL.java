@@ -1,6 +1,7 @@
 package tech.asmussen.cql;
 
 import tech.asmussen.cql.misc.ASCII;
+import tech.asmussen.cql.structure.Server;
 
 import java.io.BufferedReader;
 import java.io.File;

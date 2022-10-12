@@ -1,0 +1,6 @@
+Server Folder:
+- Database Folder:
+  - Table Folder:
+    - Data.cql File:
+      - Col1,Col2 ...
+      - Row1,Row2 ...
