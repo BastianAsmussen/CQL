@@ -1,15 +1,21 @@
 package tech.asmussen.cql;
 
+import tech.asmussen.cql.exceptions.DataFormatException;
+import tech.asmussen.cql.exceptions.ExistingDatabaseException;
+import tech.asmussen.cql.exceptions.ExistingTableException;
 import tech.asmussen.cql.exceptions.NoSuchServerException;
 import tech.asmussen.cql.misc.ASCII;
+import tech.asmussen.cql.structure.Database;
 import tech.asmussen.cql.structure.Server;
+import tech.asmussen.cql.structure.Table;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Arrays;
+import java.util.Objects;
 import java.util.Scanner;
 
 public class CQL {
@@ -60,29 +66,128 @@ public class CQL {
 		
 		System.out.println("Initializing CQL...");
 		
-		File[] serverFiles = new File(ROOT, "Servers").listFiles();
+		File[] serverFiles = ROOT.listFiles();
 		
-		if (serverFiles != null) {
+		if (serverFiles == null) {
 			
-			for (File server : serverFiles) {
-				
-				if (server.isDirectory()) {
-					
-					serverFiles = Arrays.copyOf(serverFiles, serverFiles.length + 1);
-					serverFiles[serverFiles.length - 1] = new File(server.getName());
-				}
-			}
+			servers = new Server[0];
+			
+		} else {
 			
 			servers = new Server[serverFiles.length];
 			
 			for (int i = 0; i < serverFiles.length; i++) {
 				
-				servers[i] = new Server(serverFiles[i].getName());
+				Server currentServer = new Server(serverFiles[i].getName());
+				
+				servers[i] = currentServer;
+				
+				// Foreach folder in the server folder, create a database.
+				File[] databaseFiles = serverFiles[i].listFiles();
+				
+				if (databaseFiles == null) {
+					
+					continue;
+				}
+				
+				for (File databaseFile : databaseFiles) {
+					
+					Database currentDatabase = new Database(currentServer, databaseFile.getName());
+					
+					try {
+						
+						currentServer.createDatabase(currentDatabase.getName());
+						
+					} catch (ExistingDatabaseException e) {
+						
+						System.out.println("Failed to initialize database '" + currentDatabase.getName() + "' in server '" + currentDatabase.getName() + "'!");
+						
+						continue;
+					}
+					
+					// Foreach folder in the database folder, create a table.
+					File[] tableFiles = databaseFile.listFiles();
+					
+					if (tableFiles == null) {
+						
+						continue;
+					}
+					
+					// Find the descriptor file describing how many columns the table has and what their names are.
+					File descriptorFile = null;
+					
+					for (File tableFile : tableFiles) {
+						
+						if (tableFile.getName().equals("Descriptor.txt")) {
+							
+							descriptorFile = tableFile;
+							
+							break;
+						}
+					}
+					
+					// Read the descriptor file.
+					String[] columns;
+					
+					try {
+						
+						BufferedReader reader = new BufferedReader(new FileReader(Objects.requireNonNull(descriptorFile)));
+						
+						columns = reader.readLine().split(",");
+						
+					} catch (IOException | NullPointerException e) {
+						
+						System.out.println(
+								"Failed to initialize table '" + currentDatabase.getName() +
+								"' in database '" + currentDatabase.getName() +
+								"' in server '" + currentDatabase.getName() + "'!"
+						);
+						
+						continue;
+					}
+					
+					for (File tableFile : tableFiles) {
+						
+						Table currentTable = new Table(currentDatabase, tableFile.getName(), columns);
+						
+						try {
+							
+							currentDatabase.createTable(currentTable.getName(), currentTable.getColumns());
+							
+						} catch (ExistingTableException e) {
+							
+							System.out.println("The table '" + currentTable.getName() + "' already exists!");
+							
+							continue;
+						}
+						
+						// Load data from Data.cql into the table.
+						File dataFile = new File(tableFile, "Data.cql");
+						
+						try {
+							
+							BufferedReader reader = new BufferedReader(new FileReader(dataFile));
+							
+							String line;
+							while ((line = reader.readLine()) != null) {
+								
+								Object[] values = line.split(",");
+								
+								currentTable.insert((Integer) values[0], values);
+							}
+							
+						} catch (IOException | DataFormatException e) {
+							
+							System.out.println(
+									"Failed to load data from file '" + dataFile.getAbsolutePath() +
+									"' into table '" + currentTable.getName() +
+									"' in database '" + currentDatabase.getName() +
+									"' in server '" + currentDatabase.getName() + "'!"
+							);
+						}
+					}
+				}
 			}
-			
-		} else {
-			
-			servers = new Server[0];
 		}
 		
 		System.out.println("Initialized in " + (System.currentTimeMillis() - startTime) + " ms!");
@@ -102,17 +207,35 @@ public class CQL {
 			case "ascii" -> ASCII.printArt();
 			case "confirm" -> {
 				
-				String serverName = new Server("Test").getName();
+				String[] args = input.split(" ");
 				
 				try {
 					
+					String serverName = args[1];
+					
 					writeChanges(serverName);
 					
-				} catch (NoSuchServerException e) {
+				} catch (IndexOutOfBoundsException | NoSuchServerException e) {
 					
-					System.out.println("A server with the name '" + serverName + "' does not exist!");
+					System.out.println("That server doesn't exist!");
 				}
 			}
+			case "revert" -> {
+				
+				String[] args = input.split(" ");
+				
+				try {
+					
+					String serverName = args[1];
+					
+					throw new NoSuchServerException(serverName);
+					
+				} catch (IndexOutOfBoundsException | NoSuchServerException e) {
+					
+					System.out.println("That server doesn't exist!");
+				}
+			}
+			
 			default -> System.out.println("Unknown command, type 'help' for help.");
 		}
 	}
@@ -138,16 +261,29 @@ public class CQL {
 	
 	private static void printHelp() {
 		
-		final Server[] servers = getServers();
+		int serverCount = servers.length;
+		int databaseCount = 0;
+		int tableCount = 0;
 		
-		final int serverCount = servers.length;
-		final int databaseCount = Arrays.stream(servers)
-										.mapToInt(server -> server.getDatabases().length)
-										.sum();
-		final int tableCount = Arrays.stream(servers)
-									 .mapToInt(server -> Arrays.stream(server.getDatabases())
-									 .mapToInt(database -> database.getTables().length).sum())
-									 .sum();
+		for (Server server : servers) {
+			
+			if (server.getDatabases() == null) {
+				
+				continue;
+			}
+			
+			databaseCount += server.getDatabases().length;
+			
+			for (Database database : server.getDatabases()) {
+				
+				if (database.getTables() == null) {
+					
+					continue;
+				}
+				
+				tableCount += database.getTables().length;
+			}
+		}
 		
 		System.out.println("┌─ CQL - Custom Query Language");
 		System.out.println("├─── Author:  " + AUTHOR);
@@ -155,13 +291,13 @@ public class CQL {
 		System.out.println("├─── Version: " + VERSION);
 		System.out.println("│");
 		System.out.println("├─ Commands");
-		System.out.println("├─── 'help'     Print this message.");
-		System.out.println("├─── 'docs'     Get a link to the documentation.");
-		System.out.println("├─── 'update'   Check for updates.");
-		System.out.println("├─── 'clear'    Clear the screen.");
-		System.out.println("├─── 'exit'     Exit the program.");
-		System.out.println("├─── 'confirm'  Confirm the server, database and table changes.");
-		System.out.println("├─── 'rollback' Cancel the server, database and table changes.");
+		System.out.println("├─── 'help'    Print this message.");
+		System.out.println("├─── 'docs'    Get a link to the documentation.");
+		System.out.println("├─── 'update'  Check for updates.");
+		System.out.println("├─── 'clear'   Clear the screen.");
+		System.out.println("├─── 'exit'    Exit the program.");
+		System.out.println("├─── 'confirm' Confirm the server, database and table changes.");
+		System.out.println("├─── 'revert'  Cancel the server, database and table changes.");
 		System.out.println("│");
 		System.out.println("├─ Information");
 		System.out.println("├─── Install Path:    " + ROOT.getAbsolutePath());

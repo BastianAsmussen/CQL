@@ -105,11 +105,6 @@ public class Table {
 		isDataSorted = false;
 	}
 	
-	public void drop() {
-		
-		database.removeTable(this);
-	}
-	
 	public Object searchFor(Object value) throws NoResultException {
 		
 		if (!isDataSorted) sortData();

@@ -46,15 +46,17 @@ public class Database {
 		throw new NoSuchTableException("No table with the name '" + name + "' exists in this database!");
 	}
 	
-	public void addTable(Table table) throws ExistingTableException {
+	public void createTable(String name, String[] columns) throws ExistingTableException {
 		
-		for (Table value : tables) {
+		for (Table table : tables) {
 			
-			if (value.getName().equals(table.getName())) {
+			if (table.getName().equals(name)) {
 				
 				throw new ExistingTableException("The table '" + table.getName() + "' already exists!");
 			}
 		}
+		
+		Table table = new Table(this, name, columns);
 		
 		Table[] newTables = new Table[tables.length + 1];
 		
@@ -65,21 +67,30 @@ public class Database {
 		tables = newTables;
 	}
 	
-	public void removeTable(Table table) {
+	public void dropTable(String name) throws NoSuchTableException {
 		
-		Table[] newTables = new Table[tables.length - 1];
-		
-		int index = 0;
-		for (Table value : tables) {
+		for (Table table : tables) {
 			
-			if (value != table) newTables[index++] = value;
+			if (table.getName().equals(name)) {
+				
+				Table[] newTables = new Table[tables.length - 1];
+				
+				int index = 0;
+				
+				for (Table value : tables) {
+					
+					if (!value.getName().equals(name)) {
+						
+						newTables[index++] = value;
+					}
+				}
+				
+				tables = newTables;
+				
+				return;
+			}
 		}
 		
-		tables = newTables;
-	}
-	
-	public void drop() {
-		
-		server.dropDatabase(this);
+		throw new NoSuchTableException("No table with the name '" + name + "' exists in this database!");
 	}
 }
